@@ -51,7 +51,8 @@ function route(method, pattern, handler, opts = {}) {
   const re = new RegExp('^' + pattern.replace(/:([a-z]+)/gi, (_, k) => { keys.push(k); return '([^/]+)'; }) + '/?$');
   routes.push({ method, re, keys, handler, auth: opts.auth !== false });
 }
-async function handleApi(req, res, url) {
+async function handleApi(req, res, url, customSubPath) {
+  const p = customSubPath || (url.pathname.replace(/^\/api/, "") || "/");
   const ip = H.clientIp(req);
   if (!limit(`ip:${ip}`, 600, 60000)) throw new HttpError(429, 'Terlalu banyak permintaan. Coba lagi sebentar.');
   if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && req.headers.origin) { // perlindungan CSRF
@@ -295,20 +296,38 @@ route('POST', '/api/chat', async ({ req, res, user }) => {
 /* ───────────── server ─────────────
    requestHandler diekspor terpisah agar bisa dipakai baik oleh http.createServer
    (hosting Node biasa) maupun oleh fungsi serverless Vercel (lihat api/index.js). */
+
+function getApiPathname(req, url) {
+  if (req.headers["x-matched-path"] && req.headers["x-matched-path"].startsWith("/api/")) {
+    return req.headers["x-matched-path"];
+  }
+  if (url.pathname === "/api/index" || url.pathname === "/api/index.js" || url.pathname === "/api") {
+    if (url.searchParams.has("0")) {
+      return "/api/" + url.searchParams.get("0").replace(/^\/+/, "");
+    }
+  }
+  return url.pathname;
+}
+
 async function requestHandler(req, res) {
   H.secureHeaders(res);
   try {
-    let url; try { url = new URL(req.url, 'http://localhost'); } catch { throw new HttpError(400, 'URL tidak valid.'); }
-    if (url.pathname.startsWith('/api/')) return await handleApi(req, res, url);
-    if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'Metode tidak diizinkan.');
+    let url; try { url = new URL(req.url, "http://localhost"); } catch { throw new HttpError(400, "URL tidak valid."); }
+    const apiPath = getApiPathname(req, url);
+    if (apiPath.startsWith("/api/") && apiPath !== "/api/index" && apiPath !== "/api/index.js") {
+      const sub = apiPath.replace(/^\/api/, "") || "/";
+      return await handleApi(req, res, url, sub);
+    }
+    if (req.method !== "GET" && req.method !== "HEAD") throw new HttpError(405, "Metode tidak diizinkan.");
     if (H.serveStatic(req, res, url.pathname)) return;
-    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); res.end('404 — Halaman tidak ditemukan');
+    if (url.pathname === "/") { if (H.serveStatic(req, res, "/index.html")) return; }
+    res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }); res.end("404 — Halaman tidak ditemukan");
   } catch (e) {
     const status = e instanceof HttpError ? e.status : 500;
-    if (status === 500) console.error('[server]', e);
+    if (status === 500) console.error("[server]", e);
     if (res.headersSent) { try { res.end(); } catch { /* selesai */ } return; }
-    if (status === 413) res.setHeader('Connection', 'close');
-    H.json(res, status, { error: status === 500 ? 'Terjadi kesalahan di server.' : e.message });
+    if (status === 413) res.setHeader("Connection", "close");
+    H.json(res, status, { error: status === 500 ? "Terjadi kesalahan di server." : e.message });
   }
 }
 const server = http.createServer(requestHandler);
