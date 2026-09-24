@@ -324,4 +324,8 @@ if (require.main === module) {
   });
   for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { console.log('\nMenutup server…'); flush(); server.close(() => process.exit(0)); setTimeout(() => process.exit(0), 3000).unref(); });
 }
-module.exports = { server, start, flush, requestHandler };
+module.exports = requestHandler;
+module.exports.requestHandler = requestHandler;
+module.exports.server = server;
+module.exports.start = start;
+module.exports.flush = flush;
