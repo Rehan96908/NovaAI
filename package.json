@@ -1,0 +1,16 @@
+{
+  "name": "nova-ai",
+  "version": "1.0.0",
+  "description": "Nova AI — website chat AI (frontend + backend) memakai ON Token",
+  "private": true,
+  "engines": { "node": ">=18.17" },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "check": "node scripts/check-api.js",
+    "test": "node --test 'test/**/*.test.js'"
+  },
+  "dependencies": {
+    "pg": "^8.13.0"
+  }
+}

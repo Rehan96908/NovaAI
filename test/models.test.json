@@ -1,0 +1,6 @@
+[
+  { "id": "claude-sonnet-5", "name": "Claude Sonnet 5", "vision": true, "desc": "uji" },
+  { "id": "claude-opus-5", "name": "Claude Opus 5", "vision": true, "desc": "uji" },
+  { "id": "deepseek-v4-flash-0731", "name": "DeepSeek V4 Flash", "vision": false, "desc": "uji" },
+  { "id": "strict-model", "name": "Strict", "vision": false, "desc": "menolak parameter temperature" }
+]
