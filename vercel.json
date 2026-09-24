@@ -1,9 +1,9 @@
 {
-  "buildCommand": false,
+  "buildCommand": null,
   "outputDirectory": "public",
   "functions": {
     "api/index.js": {
-      "maxDuration": 300
+      "maxDuration": 60
     }
   },
   "rewrites": [
