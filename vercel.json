@@ -1,5 +1,4 @@
 {
-  "name": "nova-ai",
   "version": 2,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.js" }
