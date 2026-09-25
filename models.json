@@ -1,5 +1,26 @@
 [
-  { "id": "claude-sonnet-5", "name": "Claude Sonnet 5", "badge": "Direkomendasikan", "icon": "spark", "vision": true, "desc": "Seimbang: kualitas tinggi dengan kecepatan baik." },
-  { "id": "claude-opus-5", "name": "Claude Opus 5", "badge": "Mendalam", "icon": "layers", "vision": true, "desc": "Penalaran mendalam untuk analisis dan coding kompleks." },
-  { "id": "deepseek-v4-flash-0731", "name": "DeepSeek V4 Flash", "badge": "Cepat", "icon": "bolt", "vision": false, "desc": "Sangat cepat dan hemat untuk tugas harian (teks saja)." }
+  {
+    "id": "claude-sonnet-5",
+    "name": "Claude Sonnet 5",
+    "badge": "Cepat & Cerdas",
+    "icon": "layers",
+    "vision": true,
+    "desc": "Kualitas tinggi dengan kecepatan responsif."
+  },
+  {
+    "id": "claude-opus-5",
+    "name": "Claude Opus 5",
+    "badge": "Direkomendasikan",
+    "icon": "spark",
+    "vision": true,
+    "desc": "Penalaran mendalam untuk analisis dan coding kompleks."
+  },
+  {
+    "id": "deepseek-v4-flash-0731",
+    "name": "DeepSeek V4 Flash",
+    "badge": "Cepat",
+    "icon": "bolt",
+    "vision": false,
+    "desc": "Sangat cepat dan hemat untuk percakapan sehari-hari."
+  }
 ]
