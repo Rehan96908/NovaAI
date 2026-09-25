@@ -418,7 +418,8 @@
         <div class="page-head"><h1>Pengaturan</h1><p>Atur profil, tampilan, dan perilaku Nova sesuai gayamu.</p></div>
         <div class="settings">
           <nav class="settings__tabs" id="settingsTabs" aria-label="Kategori pengaturan">
-            <button class="is-active" data-stab="profil"><svg class="icon"><use href="#i-user"/></svg> Profil</button><button data-stab="tampilan"><svg class="icon"><use href="#i-eye"/></svg> Tampilan</button><button data-stab="model"><svg class="icon"><use href="#i-layers"/></svg> Model &amp; Respons</button><button data-stab="suara"><svg class="icon"><use href="#i-mic"/></svg> Suara</button><button data-stab="keamanan"><svg class="icon"><use href="#i-lock"/></svg> Keamanan</button><button data-stab="data"><svg class="icon"><use href="#i-db"/></svg> Data &amp; Privasi</button><button id="tabAdminSetting" data-stab="admin-pane" hidden><svg class="icon"><use href="#i-shield"/></svg> Panel Admin</button>
+            <button class="is-active" data-stab="profil"><svg class="icon"><use href="#i-user"/></svg> Profil</button><button data-stab="tampilan"><svg class="icon"><use href="#i-eye"/></svg> Tampilan</button><button data-stab="model"><svg class="icon"><use href="#i-layers"/></svg> Model &amp; Respons</button><button data-stab="suara"><svg class="icon"><use href="#i-mic"/></svg> Suara</button><button data-stab="keamanan"><svg class="icon"><use href="#i-lock"/></svg> Keamanan</button><button data-stab="data"><svg class="icon"><use href="#i-db"/></svg> Data &amp; Privasi</button>
+            <button id="tabAdminSetting" data-stab="admin-pane" hidden><svg class="icon"><use href="#i-shield"/></svg> Panel Admin</button>
           </nav>
           <div>
             <div class="settings__pane is-active" data-spane="profil"><div class="card">
@@ -434,7 +435,8 @@
               <div class="setting-row"><div class="setting-row__txt"><strong>Ukuran teks</strong><span>Sesuaikan keterbacaan di perangkat ini.</span></div><select class="input input--sm" id="selFont" style="width:150px"><option value="14">Kecil</option><option value="16">Sedang</option><option value="18">Besar</option></select></div>
             </div></div>
             <div class="settings__pane" data-spane="model"><div class="card">
-              <div class="setting-row"><div class="setting-row__txt"><strong>Model default</strong><span>Dipakai setiap kali memulai chat baru.</span></div><select class="input input--sm" id="selDefaultModel" style="width:210px"></select></div><div class="setting-row"><div class="setting-row__txt"><strong>API Key ON Token</strong><span>Kunci API Anda dari app.ontoken.id. Kosongkan untuk memakai kunci bawaan server.</span></div><input type="password" class="input input--sm" id="stApiKey" placeholder="sk-ont-..." style="width:230px"></div>
+              <div class="setting-row"><div class="setting-row__txt"><strong>Model default</strong><span>Dipakai setiap kali memulai chat baru.</span></div><select class="input input--sm" id="selDefaultModel" style="width:210px"></select></div>
+              <div class="setting-row"><div class="setting-row__txt"><strong>API Key ON Token</strong><span>Kunci API pribadi dari app.ontoken.id. Kosongkan untuk memakai kunci server.</span></div><input type="password" class="input input--sm" id="stApiKey" placeholder="sk-ont-..." style="width:230px"></div>
               <div class="setting-row setting-row--stack"><div class="setting-row__txt"><strong>Kreativitas (temperature)</strong><span>Rendah = fokus &amp; konsisten. Tinggi = kreatif &amp; bervariasi.</span></div><div class="range-wrap"><input type="range" class="range" id="rngTemp" min="0" max="100" value="60" aria-label="Temperature"><span class="range__value" id="rngTempVal">0.6</span></div></div>
               <div class="setting-row"><div class="setting-row__txt"><strong>Streaming respons</strong><span>Tampilkan jawaban kata demi kata saat ditulis.</span></div><label class="switch"><input type="checkbox" id="swStreaming" checked><span class="switch__track"></span></label></div>
               <div class="setting-row"><div class="setting-row__txt"><strong>Gaya jawaban</strong><span>Panjang dan kedalaman respons.</span></div><select class="input input--sm" id="selStyle" style="width:170px"><option value="ringkas">Ringkas</option><option value="seimbang">Seimbang</option><option value="mendetail">Mendetail</option></select></div>
@@ -464,12 +466,12 @@
                 <div class="card__head flex justify-between items-center wrap gap-8">
                   <div>
                     <h3>Kontrol Server Maintenance (Admin)</h3>
-                    <p style="color:var(--text-secondary);font-size:13px;margin-top:2px">Saat aktif, pengguna biasa tidak dapat chat dan banner alasan maintenance akan muncul di atas web.</p>
+                    <p style="color:var(--text-secondary);font-size:13px;margin-top:2px">Saat aktif, fitur chat dinonaktifkan untuk user dan pesan maintenance muncul di layar.</p>
                   </div>
                   <span id="settingsMaintBadge" class="badge">Mengecek...</span>
                 </div>
-                <div class="card__body" style="padding-top:12px">
-                  <div class="field" style="margin-bottom:12px">
+                <div class="card__body" style="padding-top:16px">
+                  <div class="field" style="margin-bottom:14px">
                     <label for="settingsMaintMsg">Keterangan / Alasan Server Maintenance</label>
                     <input type="text" id="settingsMaintMsg" class="input" placeholder="Contoh: update fitur, perbaikan sistem, maintenance berkala..." maxlength="150" style="max-width:550px">
                   </div>
