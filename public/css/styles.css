@@ -1,7 +1,7 @@
 
-    /* ═══════════════════════════════════════════════════════════════
-       1. CSS VARIABLES — palet monokrom, tipografi, radius, easing
-       ═══════════════════════════════════════════════════════════════ */
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+       1. CSS VARIABLES â palet monokrom, tipografi, radius, easing
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     :root,
     [data-theme="dark"] {
       --bg-primary: #050505;
@@ -73,9 +73,9 @@
       --code-bg: #F0F0F0;
     }
 
-    /* ═══════════════════════════════════════════════════════════════
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
        2. RESET & BASE
-       ═══════════════════════════════════════════════════════════════ */
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { overflow-x: hidden; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
     body {
@@ -121,9 +121,9 @@
     .icon--xs { width: 14px; height: 14px; }
     .icon--lg { width: 24px; height: 24px; }
 
-    /* ═══════════════════════════════════════════════════════════════
-       3. BACKGROUND — gradient mesh, glow, partikel, film grain
-       ═══════════════════════════════════════════════════════════════ */
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+       3. BACKGROUND â gradient mesh, glow, partikel, film grain
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     .bg-mesh {
       position: fixed; inset: 0; z-index: -3; pointer-events: none;
       background:
@@ -156,9 +156,9 @@
       border-radius: inherit;
     }
 
-    /* ═══════════════════════════════════════════════════════════════
-       4. LAYOUT — container, section, halaman (SPA), utilitas
-       ═══════════════════════════════════════════════════════════════ */
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+       4. LAYOUT â container, section, halaman (SPA), utilitas
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     .container { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 20px; }
     .section { padding: clamp(64px, 9vw, 112px) 0; }
     .section--bordered { border-top: 1px solid var(--border-soft); }
@@ -192,9 +192,9 @@
     .mt-8 { margin-top: 8px; } .mt-16 { margin-top: 16px; } .mt-24 { margin-top: 24px; } .mt-32 { margin-top: 32px; }
     .flex { display: flex; } .items-center { align-items: center; } .justify-between { justify-content: space-between; } .gap-8 { gap: 8px; } .gap-12 { gap: 12px; } .wrap { flex-wrap: wrap; }
 
-    /* ═══════════════════════════════════════════════════════════════
-       5. KOMPONEN — tombol, kartu, input, badge, switch, dsb.
-       ═══════════════════════════════════════════════════════════════ */
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+       5. KOMPONEN â tombol, kartu, input, badge, switch, dsb.
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     /* Logo */
     .brand { display: inline-flex; align-items: center; gap: 10px; }
     .logo-mark { width: 32px; height: 32px; flex-shrink: 0; filter: drop-shadow(0 0 6px var(--accent-glow)); animation: logoGlow 7s ease-in-out infinite; }
@@ -468,7 +468,7 @@
     .empty-state h3 { font-size: 1.15rem; margin-bottom: 6px; color: var(--text-primary); }
     .empty-state p { max-width: 360px; font-size: 0.9rem; }
 
-    /* Theme toggle (matahari ↔ bulan) */
+    /* Theme toggle (matahari â bulan) */
     .theme-toggle { position: relative; }
     .theme-toggle .icon { position: absolute; transition: transform 0.5s var(--ease), opacity 0.3s; }
     [data-theme="dark"] .theme-toggle__moon { opacity: 0; transform: rotate(-90deg) scale(0.4); }
@@ -479,9 +479,9 @@
     .meter i { flex: 1; height: 4px; border-radius: 999px; background: var(--border); }
     .meter i.on { background: var(--text-primary); }
 
-    /* ═══════════════════════════════════════════════════════════════
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
        6. KEYFRAMES
-       ═══════════════════════════════════════════════════════════════ */
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     @keyframes meshMove { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
     @keyframes glowDrift { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(8vmax, 6vmax) scale(1.15); } }
     @keyframes pageIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
@@ -508,9 +508,9 @@
     .logo-orb--b { animation: orbSpinRev 26s linear infinite; }
     .logo-mark--sm .logo-orb { animation: none; }
 
-    /* ═══════════════════════════════════════════════════════════════
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
        7. NAVBAR & FOOTER (landing)
-       ═══════════════════════════════════════════════════════════════ */
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 90; height: var(--navbar-h); padding-top: env(safe-area-inset-top, 0px); background: transparent; border-bottom: 1px solid transparent; transition: background-color var(--dur), border-color var(--dur), backdrop-filter var(--dur); }
     .navbar.is-scrolled { background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom-color: var(--border-soft); }
     .navbar__inner { height: var(--navbar-h); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
@@ -534,9 +534,9 @@
     .footer li a:hover { color: var(--text-primary); }
     .footer__bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border-soft); color: var(--text-muted); font-size: 0.85rem; }
 
-    /* ═══════════════════════════════════════════════════════════════
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
        8. LANDING
-       ═══════════════════════════════════════════════════════════════ */
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     .hero { position: relative; padding: calc(var(--navbar-h) + clamp(48px, 8vw, 96px)) 0 clamp(56px, 8vw, 96px); overflow: hidden; }
     .hero__grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
     .hero__title { font-size: clamp(2.5rem, 6.2vw, 4.8rem); letter-spacing: -0.04em; line-height: 1.02; margin: 22px 0 22px; text-wrap: balance; }
@@ -603,9 +603,9 @@
     .cta-banner .btn--outline:hover { background: rgba(255,255,255,.08); border-color: #888; }
     .cta-banner .hero__cta { justify-content: center; margin-top: 0; }
 
-    /* ═══════════════════════════════════════════════════════════════
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
        9. AUTH
-       ═══════════════════════════════════════════════════════════════ */
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     .auth { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: 1fr 1fr; }
     .auth__visual { position: relative; overflow: hidden; background: #050505; }
     .auth__visual img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.1); }
@@ -630,9 +630,9 @@
     .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border-soft); }
     .social-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-    /* ═══════════════════════════════════════════════════════════════
-       10. APP SHELL (sidebar + main) — chat, riwayat, settings, dashboard
-       ═══════════════════════════════════════════════════════════════ */
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+       10. APP SHELL (sidebar + main) â chat, riwayat, settings, dashboard
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     .app { height: 100vh; height: 100dvh; width: 100%; overflow: hidden; }
     .sidebar { width: 288px; flex-shrink: 0; display: flex; flex-direction: column; height: 100%; background: var(--bg-secondary); border-right: 1px solid var(--border-soft); transition: width .3s var(--ease), transform .35s var(--ease), margin .3s var(--ease); padding-top: env(safe-area-inset-top, 0px); }
     .sidebar__head { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 12px; }
@@ -669,9 +669,9 @@
     .page-head h1 { font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -0.03em; margin-bottom: 6px; }
     .page-head p { color: var(--text-secondary); }
 
-    /* ═══════════════════════════════════════════════════════════════
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
        11. CHAT
-       ═══════════════════════════════════════════════════════════════ */
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     .model-picker { position: relative; }
     .model-picker__btn { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px 0 14px; border-radius: 12px; border: 1px solid var(--border); font-size: 0.9rem; font-weight: 500; transition: background-color .2s, border-color .2s; }
     .model-picker__btn:hover { background: var(--bg-elevated); border-color: var(--text-muted); }
@@ -768,9 +768,9 @@
     .scroll-bottom { position: absolute; right: 24px; bottom: 150px; z-index: 5; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: var(--bg-elevated); border: 1px solid var(--border); box-shadow: var(--shadow-md); opacity: 0; transform: translateY(8px); pointer-events: none; transition: .25s var(--ease); }
     .scroll-bottom.is-visible { opacity: 1; transform: none; pointer-events: auto; }
 
-    /* ═══════════════════════════════════════════════════════════════
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
        12. RIWAYAT
-       ═══════════════════════════════════════════════════════════════ */
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: center; }
     .toolbar .input-wrap { flex: 1; min-width: 220px; }
     .toolbar select.input { width: auto; min-width: 150px; }
@@ -790,9 +790,9 @@
     .conv__meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; font-size: 0.78rem; color: var(--text-muted); flex-shrink: 0; }
     .conv .rename-input { height: 32px; font-size: .9rem; }
 
-    /* ═══════════════════════════════════════════════════════════════
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
        13. SETTINGS
-       ═══════════════════════════════════════════════════════════════ */
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     .settings { display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: start; }
     .settings__tabs { position: sticky; top: 0; display: grid; gap: 2px; }
     .settings__tabs button { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; font-size: 0.9rem; color: var(--text-secondary); text-align: left; transition: .2s; }
@@ -810,9 +810,9 @@
     .danger-zone { border-color: var(--border); background: transparent; }
     .avatar-up { display: flex; align-items: center; gap: 18px; }
 
-    /* ═══════════════════════════════════════════════════════════════
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
        14. PRICING
-       ═══════════════════════════════════════════════════════════════ */
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: stretch; }
     .plan { display: flex; flex-direction: column; gap: 20px; padding: 32px 28px; }
     .plan--pop { border-color: var(--text-muted); background: linear-gradient(180deg, var(--bg-elevated), var(--bg-card)); box-shadow: 0 0 0 1px var(--accent-glow), var(--shadow-lg); position: relative; }
@@ -828,9 +828,9 @@
     .compare .yes { color: var(--text-primary); }
     .compare .no { color: var(--text-muted); }
 
-    /* ═══════════════════════════════════════════════════════════════
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
        15. DASHBOARD
-       ═══════════════════════════════════════════════════════════════ */
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
     .stat { padding: 20px; }
     .stat__label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
@@ -860,9 +860,9 @@
     .two-col { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 14px; }
     .dash-grid > *, .two-col > * { min-width: 0; }
 
-    /* ═══════════════════════════════════════════════════════════════
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
        16. RESPONSIVE
-       ═══════════════════════════════════════════════════════════════ */
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     @media (max-width: 1024px) {
       .hero__grid { grid-template-columns: 1fr; }
       .hero__visual { max-width: 460px; margin: 0 auto; width: 100%; }
@@ -911,9 +911,9 @@
     }
 
 
-    /* ═══════════════════════════════════════════════════════════════
-       17. TAMBAHAN — mode tamu, pesan error, avatar foto, form modal
-       ═══════════════════════════════════════════════════════════════ */
+    /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+       17. TAMBAHAN â mode tamu, pesan error, avatar foto, form modal
+       âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
     .app.is-guest .sidebar, .app.is-guest .sidebar-scrim, .app.is-guest #btnSidebar { display: none; }
     [data-guest-only], [data-user-only] { align-items: center; gap: 10px; }
     .avatar { background-size: cover; background-position: center; }
@@ -933,3 +933,25 @@
     .plan .btn[disabled] { opacity: 0.55; cursor: not-allowed; }
     .use-case p { color: var(--text-secondary); font-size: 0.92rem; line-height: 1.65; }
     .use-case h3 { font-size: 1.1rem; }
+
+    /* ââââââââââ ADMIN & MAINTENANCE STYLES ââââââââââ */
+    .badge--admin { background: #3b82f620; color: #60a5fa; border: 1px solid #3b82f640; }
+    .badge--pro { background: #f59e0b20; color: #fbbf24; border: 1px solid #f59e0b40; }
+    .badge--disabled { background: #ef444420; color: #f87171; border: 1px solid #ef444440; }
+    .badge--active { background: #10b98120; color: #34d399; border: 1px solid #10b98140; }
+    
+    .maintenance-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 18px;
+      background: linear-gradient(90deg, rgba(239, 68, 68, 0.15), rgba(245, 158, 11, 0.15));
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: var(--r-card, 12px);
+      margin: 12px 16px 4px;
+      color: var(--text-primary);
+      font-size: 13px;
+      animation: fadeIn .3s ease both;
+    }
+    .maintenance-banner svg { color: #f87171; shrink: 0; }
+    .maintenance-banner strong { color: #fca5a5; font-weight: 600; margin-right: 6px; }

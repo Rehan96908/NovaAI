@@ -7,10 +7,6 @@
   <meta name="theme-color" content="#050505">
   <title>Nova AI — Kecerdasan yang Menerangi Ide Kamu</title>
   <meta name="description" content="Nova AI adalah asisten AI premium untuk menulis, menganalisis, dan membangun ide — dengan model multi-tier, riwayat tersimpan, dan privasi terjaga.">
-  <meta property="og:title" content="Nova AI — Kecerdasan yang Menerangi Ide Kamu">
-  <meta property="og:description" content="Nova AI adalah asisten AI premium untuk menulis, menganalisis, dan membangun ide — dengan model multi-tier, riwayat tersimpan, dan privasi terjaga.">
-  <meta property="og:type" content="website">
-  <meta name="twitter:card" content="summary_large_image">
 
   <!-- Google Fonts: Inter (body) + Space Grotesk (heading) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -335,6 +331,7 @@
         <a href="#dashboard" data-nav="dashboard"><svg class="icon"><use href="#i-grid"/></svg> Dashboard</a>
         <a href="#pricing" data-nav="pricing"><svg class="icon"><use href="#i-tag"/></svg> Harga</a>
         <a href="#settings" data-nav="settings"><svg class="icon"><use href="#i-gear"/></svg> Pengaturan</a>
+        <a href="#admin" data-nav="admin" id="sideAdminNav" hidden><svg class="icon"><use href="#i-shield"/></svg> Panel Admin</a>
       </nav>
       <div id="sideHistory"></div>
     </div>
@@ -363,6 +360,7 @@
 
     <!-- ══════════ C) AI CHAT ══════════ -->
     <section class="chat" id="page-chat" data-page="chat" hidden>
+      <div id="chatMaintenanceBanner" class="maintenance-banner" hidden><svg class="icon"><use href="#i-bell"/></svg><div><strong>Server Maintenance:</strong> <span id="chatMaintenanceText">Server sedang dalam pemeliharaan.</span></div></div>
       <div class="chat__scroll" id="chatScroll">
         <div class="chat-empty" id="chatEmpty">
           <svg class="logo-mark logo-mark--lg"><use href="#i-logo"/></svg>
@@ -437,7 +435,6 @@
             </div></div>
             <div class="settings__pane" data-spane="model"><div class="card">
               <div class="setting-row"><div class="setting-row__txt"><strong>Model default</strong><span>Dipakai setiap kali memulai chat baru.</span></div><select class="input input--sm" id="selDefaultModel" style="width:210px"></select></div>
-              <div class="setting-row"><div class="setting-row__txt"><strong>API Key ON Token</strong><span>Kunci API dari app.ontoken.id. Kosongkan untuk memakai kunci bawaan server.</span></div><input type="password" class="input input--sm" id="stApiKey" placeholder="sk-ont-..." style="width:230px"></div>
               <div class="setting-row setting-row--stack"><div class="setting-row__txt"><strong>Kreativitas (temperature)</strong><span>Rendah = fokus &amp; konsisten. Tinggi = kreatif &amp; bervariasi.</span></div><div class="range-wrap"><input type="range" class="range" id="rngTemp" min="0" max="100" value="60" aria-label="Temperature"><span class="range__value" id="rngTempVal">0.6</span></div></div>
               <div class="setting-row"><div class="setting-row__txt"><strong>Streaming respons</strong><span>Tampilkan jawaban kata demi kata saat ditulis.</span></div><label class="switch"><input type="checkbox" id="swStreaming" checked><span class="switch__track"></span></label></div>
               <div class="setting-row"><div class="setting-row__txt"><strong>Gaya jawaban</strong><span>Panjang dan kedalaman respons.</span></div><select class="input input--sm" id="selStyle" style="width:170px"><option value="ringkas">Ringkas</option><option value="seimbang">Seimbang</option><option value="mendetail">Mendetail</option></select></div>
@@ -506,6 +503,69 @@
           <img class="cta-bg" src="/assets/img-3.jpg" alt="" loading="lazy" decoding="async">
           <h2>Siap mencoba Nova?</h2><p>Buat akun gratis dan mulai mengobrol dengan Claude dan DeepSeek di satu tempat.</p>
           <div class="hero__cta"><button class="btn btn--primary btn--lg" data-nav="auth" data-auth-tab="register">Buat Akun Gratis</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ ADMIN PANEL ══════════ -->
+    <section class="content" id="page-admin" data-page="admin" hidden>
+      <div class="content__inner" style="max-width:1160px">
+        <div class="page-head flex justify-between items-center wrap gap-12">
+          <div>
+            <h1>Panel Administrator</h1>
+            <p>Kelola status server, kontrol maintenance, dan manajemen akun pengguna.</p>
+          </div>
+          <span class="badge badge--admin"><svg class="icon icon--sm"><use href="#i-shield"/></svg> Akses Admin</span>
+        </div>
+
+        <!-- Kontrol Server Maintenance -->
+        <div class="card mt-24">
+          <div class="card__head flex justify-between items-center">
+            <div>
+              <h3>Kontrol Server Maintenance</h3>
+              <p style="color:var(--text-secondary);font-size:13px;margin-top:2px">Saat aktif, fitur chat dinonaktifkan untuk user dan banner alasan maintenance akan muncul di atas web.</p>
+            </div>
+            <span id="maintStatusBadge" class="badge">Mengecek...</span>
+          </div>
+          <div class="card__body" style="padding-top:12px">
+            <div class="field" style="margin-bottom:12px">
+              <label for="maintMsgInput">Keterangan / Alasan Server Maintenance</label>
+              <input type="text" id="maintMsgInput" class="input" placeholder="Contoh: update fitur, perbaikan sistem, maintenance berkala..." maxlength="150" style="max-width:550px">
+              <div class="field__hint">Tulisan ini akan ditampilkan di atas layar saat server sedang maintenance.</div>
+            </div>
+            <div class="flex gap-12 items-center wrap">
+              <button class="btn btn--primary" id="btnToggleMaint">Simpan Status Maintenance</button>
+              <button class="btn btn--outline" id="btnRefreshAdmin">Refresh Data</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manajemen User -->
+        <div class="card mt-24">
+          <div class="card__head flex justify-between items-center wrap gap-8">
+            <div>
+              <h3>Daftar Pengguna Terdaftar</h3>
+              <p style="color:var(--text-secondary);font-size:13px;margin-top:2px">Semua user tersimpan di database. Anda dapat melihat, mengubah status Pro, atau menonaktifkan akun.</p>
+            </div>
+            <div id="adminUsersCount" class="badge badge--solid">0 Pengguna</div>
+          </div>
+          <div class="table-wrap mt-16">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Nama & Email</th>
+                  <th>Role</th>
+                  <th>Paket</th>
+                  <th>Status Akun</th>
+                  <th>Total Chat</th>
+                  <th style="text-align:right">Aksi Admin</th>
+                </tr>
+              </thead>
+              <tbody id="adminUsersTableBody">
+                <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-secondary)">Memuat pengguna...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
