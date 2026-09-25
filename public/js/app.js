@@ -636,6 +636,7 @@
     $('#stName').value = u.name || ''; $('#stEmail').value = u.email || ''; $('#stBio').value = u.bio || '';
     $('#avatarPreview').style.backgroundImage = u.avatar ? `url(${u.avatar})` : ''; $('#avatarPreview').textContent = u.avatar ? '' : initials(u.name);
     $('#selDefaultModel').value = u.settings.defaultModel; $('#selStyle').value = u.settings.style; $('#selLang').value = u.settings.language; $('#selVoiceLang').value = u.settings.voiceLang;
+    if ($('#stApiKey')) $('#stApiKey').value = u.settings.apiKey || '';
     $('#swStreaming').checked = !!u.settings.streaming; $('#swVoice').checked = !!u.settings.voice; $('#swVoiceAuto').checked = !!u.settings.voiceAutoSend;
     const r = $(`#themeGrid input[value="${(function () { try { return localStorage.getItem('nova:theme') || 'dark'; } catch { return 'dark'; } })()}"]`); if (r) r.checked = true;
     $('#rngTemp').value = Math.round(u.settings.temperature * 100); paintRange();
@@ -659,6 +660,7 @@
   $('#swStreaming').addEventListener('change', (e) => saveSettings({ streaming: e.target.checked }));
   $('#swVoice').addEventListener('change', (e) => saveSettings({ voice: e.target.checked }));
   $('#swVoiceAuto').addEventListener('change', (e) => saveSettings({ voiceAutoSend: e.target.checked }));
+  if ($('#stApiKey')) $('#stApiKey').addEventListener('change', (e) => saveSettings({ apiKey: e.target.value.trim() }));
 
   $('#btnSaveProfile').addEventListener('click', async () => {
     const btn = $('#btnSaveProfile'); btn.classList.add('is-loading');

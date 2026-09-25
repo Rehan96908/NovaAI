@@ -20,7 +20,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const STYLES = ['ringkas', 'seimbang', 'mendetail'];
 
 /* ───────────── util ───────────── */
-const DEFAULT_SETTINGS = () => ({ defaultModel: models.defaultId, temperature: 0.6, style: 'seimbang', language: 'id', streaming: true, voice: true, voiceLang: 'id-ID', voiceAutoSend: false });
+const DEFAULT_SETTINGS = () => ({ defaultModel: models.defaultId, temperature: 0.6, style: 'seimbang', language: 'id', streaming: true, voice: true, voiceLang: 'id-ID', voiceAutoSend: false, apiKey: '' });
 const settingsOf = (u) => ({ ...DEFAULT_SETTINGS(), ...(u.settings || {}) });
 const publicUser = (u) => ({ id: u.id, email: u.email, name: u.name, bio: u.bio || '', avatar: u.avatar || null, plan: u.plan || 'free', settings: settingsOf(u), createdAt: u.createdAt });
 const dayKey = (t = Date.now()) => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
@@ -140,6 +140,7 @@ route('PATCH', '/api/me/settings', async ({ req, user }) => {
   if ('style' in b) { if (!STYLES.includes(b.style)) throw new HttpError(400, 'Gaya jawaban tidak valid.'); s.style = b.style; }
   if ('language' in b) { if (!['id', 'en'].includes(b.language)) throw new HttpError(400, 'Bahasa tidak valid.'); s.language = b.language; }
   if ('voiceLang' in b) { if (!['id-ID', 'en-US'].includes(b.voiceLang)) throw new HttpError(400, 'Bahasa suara tidak valid.'); s.voiceLang = b.voiceLang; }
+  if ('apiKey' in b) { s.apiKey = String(b.apiKey || '').trim().slice(0, 150); }
   for (const k of ['streaming', 'voice', 'voiceAutoSend']) if (k in b) s[k] = !!b[k];
   user.settings = s; save(); return { settings: s };
 });
@@ -221,7 +222,8 @@ route('POST', '/api/chat', async ({ req, res, user }) => {
   const s = settingsOf(user);
   const model = models.get(b.model || s.defaultModel);
   if (!model) throw new HttpError(400, 'Model tidak dikenal.');
-  if (!cfg.ONTOKEN_API_KEY) throw new HttpError(503, 'Server belum dikonfigurasi: ONTOKEN_API_KEY kosong di file .env.');
+  const effectiveKey = (s && s.apiKey) || cfg.ONTOKEN_API_KEY;
+  if (!effectiveKey) throw new HttpError(503, 'Server belum dikonfigurasi: ONTOKEN_API_KEY kosong di file .env.');
 
   const regenerate = b.regenerate === true;
   const text = String(b.text || '').trim();
@@ -273,7 +275,7 @@ route('POST', '/api/chat', async ({ req, res, user }) => {
   const inChars = upstream.reduce((n, m) => n + (typeof m.content === 'string' ? m.content.length : m.content.reduce((k, p) => k + (p.text ? p.text.length : 0), 0)), 0);
   let usage = null, error = null;
   try {
-    const r = await streamChat({ model: model.id, messages: upstream, temperature: s.temperature, signal: ctrl.signal, onDelta: (t) => { ai.content += t; send({ type: 'delta', t }); } });
+    const r = await streamChat({ model: model.id, messages: upstream, temperature: s.temperature, apiKey: effectiveKey, signal: ctrl.signal, onDelta: (t) => { ai.content += t; send({ type: 'delta', t }); } });
     usage = r.usage;
   } catch (e) {
     if (!clientGone) {
