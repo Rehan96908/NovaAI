@@ -68,16 +68,44 @@ function usedToday(u) { const k = dayKey(); if (!u.usage || u.usage.day !== k) u
 const makeTitle = (text, attach) => (String(text || attach[0]?.name || 'Percakapan baru').replace(/\s+/g, ' ').trim().slice(0, 60) || 'Percakapan baru');
 let _dummy; const dummyHash = async () => (_dummy ||= await auth.hashPassword('x' + uid()));
 
-/* ───────────── sesi (cookie httpOnly berisi JWT) ───────────── */
+/* ───────────── sesi (cookie httpOnly + bearer JWT + database session) ───────────── */
 function issueSession(req, res, user, remember = true) {
   const ttl = remember ? cfg.SESSION_DAYS * 86400 : 86400;
   const token = auth.signJwt({ sub: user.id, v: user.tokenVersion || 0 }, ttl);
-  res.setHeader('Set-Cookie', H.cookieHeader(COOKIE, token, { maxAge: remember ? ttl : undefined, secure: H.isHttps(req) }));
+  const secure = H.isHttps(req);
+  
+  // Terbitkan cookie sesi httpOnly resmi (30 hari jika remember, default SameSite=Lax, Path=/)
+  res.setHeader('Set-Cookie', H.cookieHeader(COOKIE, token, { maxAge: remember ? ttl : undefined, secure, sameSite: 'Lax', path: '/' }));
+  
+  if (!db.sessions) db.sessions = {};
+  const sid = token.slice(-24);
+  db.sessions[sid] = { userId: user.id, token, expiresAt: Date.now() + ttl * 1000, createdAt: Date.now() };
+  save();
+  return token;
 }
-const clearSession = (req, res) => res.setHeader('Set-Cookie', H.cookieHeader(COOKIE, '', { maxAge: 0, secure: H.isHttps(req) }));
+
+function clearSession(req, res) {
+  const secure = H.isHttps(req);
+  res.setHeader('Set-Cookie', H.cookieHeader(COOKIE, '', { maxAge: 0, secure, sameSite: 'Lax', path: '/' }));
+  const t = H.parseCookies(req)[COOKIE];
+  if (t && db.sessions) {
+    delete db.sessions[t.slice(-24)];
+    save();
+  }
+}
+
 function currentUser(req) {
-  const t = H.parseCookies(req)[COOKIE]; if (!t) return null;
-  const p = auth.verifyJwt(t); if (!p) return null;
+  let t = null;
+  const authHeader = req.headers['authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    t = authHeader.slice(7).trim();
+  }
+  if (!t) {
+    t = H.parseCookies(req)[COOKIE];
+  }
+  if (!t) return null;
+  const p = auth.verifyJwt(t);
+  if (!p) return null;
   const u = db.users[p.sub];
   if (!u || (u.tokenVersion || 0) !== (p.v || 0)) return null;
   if (u.disabled) return null;
@@ -132,8 +160,8 @@ route('POST', '/api/auth/register', async ({ req, res, ip }) => {
   if (Object.values(db.users).some((u) => u.email === email)) throw new HttpError(409, 'Email sudah terdaftar. Silakan masuk.');
   const user = { id: uid(), email, name, passHash, bio: '', avatar: null, plan: 'free', role: 'user', disabled: false, tokenVersion: 0, settings: DEFAULT_SETTINGS(), usage: { day: dayKey(), count: 0 }, createdAt: Date.now() };
   db.users[user.id] = user; save();
-  issueSession(req, res, user, true);
-  return { user: publicUser(user) };
+  const token = issueSession(req, res, user, true);
+  return { user: publicUser(user), token };
 }, { auth: false });
 route('POST', '/api/auth/login', async ({ req, res, ip }) => {
   const b = await H.readJson(req);
@@ -143,17 +171,57 @@ route('POST', '/api/auth/login', async ({ req, res, ip }) => {
   const ok = await auth.verifyPassword(password, user ? user.passHash : await dummyHash());
   if (!user || !ok) throw new HttpError(401, 'Email atau kata sandi salah.');
   if (user.disabled) throw new HttpError(403, 'Akun Anda telah dinonaktifkan oleh administrator.');
-  issueSession(req, res, user, b.remember !== false);
-  return { user: publicUser(user) };
+  const token = issueSession(req, res, user, b.remember !== false);
+  return { user: publicUser(user), token };
 }, { auth: false });
 route('POST', '/api/auth/logout', ({ req, res }) => { clearSession(req, res); return { ok: true }; }, { auth: false });
 route('GET', '/api/auth/me', ({ user }) => ({ user: publicUser(user) }));
 // Untuk frontend saat dibuka: 'siapa yang sedang masuk?' — tanpa error 401 di konsol bila belum login.
-route('GET', '/api/auth/session', ({ user }) => ({ user: user ? publicUser(user) : null }), { auth: false });
+route('GET', '/api/auth/session', ({ req, res, user }) => {
+  if (!user) return { user: null };
+  const token = issueSession(req, res, user, true);
+  return { user: publicUser(user), token };
+}, { auth: false });
 route('POST', '/api/auth/logout-all', ({ req, res, user }) => {
   user.tokenVersion = (user.tokenVersion || 0) + 1; save(); issueSession(req, res, user, true); return { ok: true };
 });
 
+
+
+route('GET', '/api/admin/db-status', async ({ user }) => {
+  if (user.role !== 'admin') throw new HttpError(403, 'Akses khusus administrator.');
+  const hasPg = !!(process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL);
+  let pgConnected = false;
+  let pgTables = [];
+  if (hasPg && dbMod.mode === 'postgres' && typeof dbMod._pool?.query === 'function') {
+    try {
+      const res = await dbMod._pool.query("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
+      pgTables = res.rows.map(r => r.tablename);
+      pgConnected = true;
+    } catch (e) {
+      pgConnected = false;
+    }
+  }
+  return {
+    mode: dbMod.mode || 'file',
+    hasPostgresConfigured: hasPg,
+    connected: pgConnected || dbMod.mode === 'postgres',
+    tables: pgTables,
+    counts: {
+      users: Object.keys(db.users || {}).length,
+      conversations: Object.keys(db.conversations || {}).length,
+      sessions: Object.keys(db.sessions || {}).length,
+    }
+  };
+});
+
+route('POST', '/api/admin/db-sync', async ({ user }) => {
+  if (user.role !== 'admin') throw new HttpError(403, 'Akses khusus administrator.');
+  if (typeof dbMod.flush === 'function') {
+    await dbMod.flush();
+  }
+  return { ok: true, message: 'Database berhasil disinkronkan.' };
+});
 
 /* ───────────── admin & maintenance ───────────── */
 route('GET', '/api/admin/users', ({ user }) => {

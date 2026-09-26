@@ -24,10 +24,13 @@
   class ApiError extends Error { constructor(status, message) { super(message); this.status = status; } }
   async function api(method, url, body) {
     let res;
+    const headers = body !== undefined ? { 'Content-Type': 'application/json' } : {};
+    const token = localStorage.getItem('nova_token');
+    if (token) headers['Authorization'] = 'Bearer ' + token;
     try {
       res = await fetch(url, {
         method, credentials: 'same-origin',
-        headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+        headers,
         body: body !== undefined ? JSON.stringify(body) : undefined,
       });
     } catch { throw new ApiError(0, 'Tidak bisa menghubungi server. Periksa koneksimu.'); }
@@ -527,7 +530,7 @@
 
     let aiNode = null, isNewConv = false;
     try {
-      const res = await fetch('/api/chat', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, signal: ctrl.signal, body: JSON.stringify(payload) });
+      const res = await fetch('/api/chat', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', ...(localStorage.getItem('nova_token') ? { 'Authorization': 'Bearer ' + localStorage.getItem('nova_token') } : {}) }, signal: ctrl.signal, body: JSON.stringify(payload) });
       if (!res.ok) { let msg = `Permintaan gagal (${res.status}).`; try { msg = (await res.json()).error || msg; } catch { /* tanpa body json */ } throw new ApiError(res.status, msg); }
       const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = '';
       while (true) {
@@ -752,7 +755,7 @@
     body: 'Akun, percakapan, dan file akan dihapus permanen. Ketik <strong>HAPUS</strong> untuk melanjutkan.',
     onConfirm: async (v) => {
       if ((v || '').trim() !== 'HAPUS') throw new ApiError(400, 'Ketik HAPUS (huruf besar) untuk konfirmasi.');
-      await apiDelete('/api/me', { confirm: 'HAPUS' }); state.user = null; state.conv = null; state.convList = []; applyAuthUI(); navigate('landing'); toast('Akun telah dihapus.', 'success');
+      await apiDelete('/api/me', { confirm: 'HAPUS' }); localStorage.removeItem('nova_token'); state.user = null; state.conv = null; state.convList = []; applyAuthUI(); navigate('landing'); toast('Akun telah dihapus.', 'success');
     },
   }));
 
@@ -861,7 +864,7 @@
         let data;
         if (form.dataset.form === 'login') data = await apiPost('/api/auth/login', { email: $('#lgEmail').value.trim(), password: $('#lgPass').value, remember: $('#lgRemember').checked });
         else data = await apiPost('/api/auth/register', { name: $('#rgName').value.trim(), email: $('#rgEmail').value.trim(), password: $('#rgPass').value });
-        state.user = data.user; applyAuthUI();
+        if (data.token) localStorage.setItem('nova_token', data.token); state.user = data.user; applyAuthUI();
         toast(form.dataset.form === 'login' ? 'Berhasil masuk. Selamat datang!' : 'Akun berhasil dibuat.', 'success');
         const next = state.pendingNav || 'chat'; state.pendingNav = null; navigate(next);
         form.reset(); $$('.field', form).forEach((f) => f.classList.remove('is-error', 'is-success'));
@@ -916,7 +919,7 @@
     if (healthRes && healthRes.maintenance) state.maintenance = healthRes.maintenance;
     applyMaintenanceUI(); }
     catch { toast('Tidak bisa menghubungi server. Beberapa fitur mungkin tidak berfungsi.'); }
-    state.user = session.user || null;
+    if (session && session.token) localStorage.setItem('nova_token', session.token); state.user = session.user || null;
     state.models = modelsRes.models || [];
     state.limits = modelsRes.limits || state.limits;
     state.model = state.models.find((m) => m.id === (state.user && state.user.settings && state.user.settings.defaultModel)) || state.models.find((m) => m.id === modelsRes.default) || state.models[0] || null;

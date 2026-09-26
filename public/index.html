@@ -1498,6 +1498,29 @@
           <span class="badge badge--admin"><svg class="icon icon--sm"><use href="#i-shield"/></svg> Akses Admin</span>
         </div>
 
+                <!-- Status Database PostgreSQL & Session -->
+        <div class="card mt-24">
+          <div class="card__head flex justify-between items-center wrap gap-8">
+            <div>
+              <h3>Status Database PostgreSQL & Sesi Cookie</h3>
+              <p style="color:var(--text-secondary);font-size:13px;margin-top:2px">Sistem penyimpanan permanen multi-tabel (users, conversations, messages, sessions) dan sesi cookie 30 hari.</p>
+            </div>
+            <span id="dbStatusBadge" class="badge">Mengecek database...</span>
+          </div>
+          <div class="card__body" style="padding-top:14px">
+            <div style="font-size:14px;color:var(--text-primary);margin-bottom:8px" id="dbCountsInfo">
+              Memuat statistik database...
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);background:var(--bg-elevated);padding:12px;border-radius:8px;margin-bottom:14px;border:1px solid var(--border)">
+              <strong>💡 Info Penyimpanan Permanen Vercel:</strong><br>
+              Aplikasi telah mendukung otomatis <code>POSTGRES_URL</code> dari Vercel Postgres / Neon / Supabase. Seluruh data (pengguna, percakapan chat, dan sesi cookie 30 hari) akan otomatis dibuatkan tabel (<code>nova_users</code>, <code>nova_conversations</code>, <code>nova_messages</code>, <code>nova_sessions</code>, <code>nova_state</code>) tanpa perlu migrasi manual.
+            </div>
+            <div class="flex gap-12 items-center wrap">
+              <button class="btn btn--primary" id="btnDbSync"><svg class="icon"><use href="#i-refresh"/></svg> Sinkronkan Database Sekarang</button>
+            </div>
+          </div>
+        </div>
+
         <!-- Kontrol Server Maintenance -->
         <div class="card mt-24">
           <div class="card__head flex justify-between items-center">
@@ -1591,6 +1614,6 @@
 </div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
-<script src="/js/app.js?v=1790411579841"></script>
+<script src="/js/app.js?v=1790412568427"></script>
 </body>
 </html>
