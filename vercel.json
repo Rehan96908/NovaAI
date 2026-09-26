@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "name": "novaai",
   "rewrites": [
     {
       "source": "/api/(.*)",
