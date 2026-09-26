@@ -42,9 +42,9 @@
   const apiDelete = (u, b) => api('DELETE', u, b);
 
     const DEFAULT_MODELS = [
-    { id: "claude-sonnet-5", name: "Claude Sonnet 5", badge: "Cepat & Cerdas", icon: "layers", vision: true, desc: "Kualitas tinggi dengan kecepatan responsif." },
-    { id: "claude-opus-5", name: "Claude Opus 5", badge: "Direkomendasikan", icon: "spark", vision: true, desc: "Penalaran mendalam untuk analisis dan coding kompleks." },
-    { id: "deepseek-v4-flash-0731", name: "DeepSeek V4 Flash", badge: "Cepat", icon: "bolt", vision: false, desc: "Sangat cepat dan hemat untuk percakapan sehari-hari." }
+    { id: "claude-sonnet-5", name: "Nova V2.5 Code (Gratis)", badge: "Gratis", icon: "spark", vision: true, desc: "Kualitas tinggi & coding responsif untuk semua pengguna.", proOnly: false },
+    { id: "deepseek-v4-flash-0731", name: "Nova V1.5 Flash (Gratis)", badge: "Gratis", icon: "bolt", vision: false, desc: "Super cepat & hemat untuk percakapan dan coding sehari-hari.", proOnly: false },
+    { id: "claude-opus-5", name: "Nova V4.0 Code (Pro)", badge: "Khusus Pro", icon: "layers", vision: true, desc: "Penalaran mendalam untuk coding tingkat lanjut dan analisis kompleks. Khusus pelanggan PRO.", proOnly: true }
   ];
 
   const state = {
@@ -158,7 +158,7 @@
         if (id === 'settings') { renderSettings(); if (state.user && state.user.role === 'admin') renderAdminMaint(); }
         if (id === 'admin') loadAdminPanel();
         if (id === 'pricing') applyLimitsToPricing();
-        if (id === 'chat' && !state.conv) showChatEmpty();
+        if (id === 'chat') { if (!state.conv) showChatEmpty(); if (state.user) refreshConvList().catch(() => {}); }
         if (id === 'chat') setTimeout(() => $('#chatInput').focus(), 60);
       }
       document.body.dataset.layout = isApp ? 'app' : 'site';
@@ -271,7 +271,10 @@
       if (sideAdmin) sideAdmin.hidden = state.user.role !== 'admin';
       const tabAdmin = document.getElementById('tabAdminSetting');
       if (tabAdmin) tabAdmin.hidden = state.user.role !== 'admin';
+      refreshConvList().catch(() => {});
     } else {
+      state.convList = [];
+      renderSidebarHistory();
       const sideAdmin = $('#sideAdminNav');
       if (sideAdmin) sideAdmin.hidden = true;
       const tabAdmin = document.getElementById('tabAdminSetting');
@@ -421,8 +424,16 @@
     const m = state.models.find((x) => x.id === conv.model); if (m) { state.model = m; if ($('#modelLabel')) renderTopbar('chat'); }
   }
   async function openConversation(id) {
-    try { const { conversation } = await apiGet(`/api/conversations/${id}`); navigate('chat'); openConversationView(conversation); }
-    catch (err) { toast(errMsg(err)); }
+    try {
+      const { conversation } = await apiGet(`/api/conversations/${id}`);
+      state.conv = conversation;
+      navigate('chat');
+      openConversationView(conversation);
+      const shell = $('#appShell');
+      if (shell) shell.classList.remove('is-drawer-open');
+    } catch (err) {
+      toast(errMsg(err));
+    }
   }
   document.addEventListener('click', (e) => { const o = e.target.closest('[data-open]'); if (o && !e.target.closest('[data-stop]')) openConversation(o.dataset.open); });
 
@@ -481,6 +492,10 @@
     if (!opts.regenerate && !text && !readyFiles.length) return;
     if (state.files.some((f) => f.uploading)) return toast('Tunggu lampiran selesai diunggah.');
     const model = state.model || state.models[0]; if (!model) return toast('Tidak ada model tersedia.');
+    if (model.proOnly && (!state.user || (state.user.plan !== 'pro' && state.user.role !== 'admin'))) {
+      toast(`Model ${model.name} khusus untuk pelanggan PRO.`, 'warning');
+      return;
+    }
     function lastUserFiles() {
       if (!state.conv) return [];
       for (let i = state.conv.messages.length - 1; i >= 0; i--) if (state.conv.messages[i].role === 'user') return state.conv.messages[i].files || [];
@@ -545,7 +560,7 @@
     }
     aiMsg.pending = false; state.abortCtrl = null; setStreamingUI(false);
     renderMessages(); stickBottom(true);
-    if (isNewConv && state.conv.id) refreshSidebarAfterTurn(); else if (state.conv.id) refreshSidebarAfterTurn();
+    await refreshConvList().catch(() => {});
     void userAborted;
   }
   $('#btnSend').addEventListener('click', () => { if (state.streaming) { if (state.abortCtrl) state.abortCtrl.abort(); } else submitComposer(); });
@@ -881,6 +896,10 @@
       $('#modelBtn').addEventListener('click', (e) => { e.stopPropagation(); const d = $('#modelMenu'), o = d.classList.contains('is-open'); closeDropdowns(); d.classList.toggle('is-open', !o); $('#modelBtn').setAttribute('aria-expanded', !o); });
       $$('#modelMenu .model-opt').forEach((b) => b.addEventListener('click', () => {
         const picked = state.models.find((x) => x.id === b.dataset.model); if (!picked) return;
+        if (picked.proOnly && (!state.user || (state.user.plan !== 'pro' && state.user.role !== 'admin'))) {
+          toast(`Model ${picked.name} khusus untuk pelanggan PRO. Akun admin otomatis memiliki akses PRO.`, 'warning');
+          return;
+        }
         if (state.files.some((f) => f.kind === 'image') && !picked.vision) { toast(`${picked.name} tidak bisa membaca gambar. Hapus gambar terlampir dulu, atau pilih model lain.`); return; }
         state.model = picked; $('#modelLabel').textContent = picked.name; $('#modelBtn').firstElementChild.outerHTML = icon(picked.icon, 'icon--sm');
         $$('#modelMenu .model-opt').forEach((x) => x.classList.toggle('is-selected', x === b)); closeDropdowns();

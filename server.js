@@ -322,6 +322,9 @@ route('POST', '/api/chat', async ({ req, res, user }) => {
   const s = settingsOf(user);
   const model = models.get(b.model || s.defaultModel);
   if (!model) throw new HttpError(400, 'Model tidak dikenal.');
+  if (model.proOnly && user.plan !== 'pro' && user.role !== 'admin') {
+    throw new HttpError(403, `Model ${model.name} khusus untuk pelanggan PRO. Tingkatkan akun Anda ke PRO atau hubungi admin.`);
+  }
   const effectiveKey = (s && s.apiKey) || cfg.ONTOKEN_API_KEY;
   if (!effectiveKey) throw new HttpError(503, 'Server belum dikonfigurasi: ONTOKEN_API_KEY kosong di file .env.');
 

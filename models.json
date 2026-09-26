@@ -1,26 +1,29 @@
 [
   {
     "id": "claude-sonnet-5",
-    "name": "Claude Sonnet 5",
-    "badge": "Cepat & Cerdas",
-    "icon": "layers",
-    "vision": true,
-    "desc": "Kualitas tinggi dengan kecepatan responsif."
-  },
-  {
-    "id": "claude-opus-5",
-    "name": "Claude Opus 5",
-    "badge": "Direkomendasikan",
+    "name": "Nova V2.5 Code (Gratis)",
+    "badge": "Gratis",
     "icon": "spark",
     "vision": true,
-    "desc": "Penalaran mendalam untuk analisis dan coding kompleks."
+    "desc": "Kualitas tinggi & coding responsif untuk semua pengguna.",
+    "proOnly": false
   },
   {
     "id": "deepseek-v4-flash-0731",
-    "name": "DeepSeek V4 Flash",
-    "badge": "Cepat",
+    "name": "Nova V1.5 Flash (Gratis)",
+    "badge": "Gratis",
     "icon": "bolt",
     "vision": false,
-    "desc": "Sangat cepat dan hemat untuk percakapan sehari-hari."
+    "desc": "Super cepat & hemat untuk percakapan dan coding sehari-hari.",
+    "proOnly": false
+  },
+  {
+    "id": "claude-opus-5",
+    "name": "Nova V4.0 Code (Pro)",
+    "badge": "Khusus Pro",
+    "icon": "layers",
+    "vision": true,
+    "desc": "Penalaran mendalam untuk coding tingkat lanjut dan analisis kompleks. Khusus pelanggan PRO.",
+    "proOnly": true
   }
 ]
