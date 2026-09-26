@@ -41,10 +41,16 @@
   const apiPatch = (u, b) => api('PATCH', u, b === undefined ? {} : b);
   const apiDelete = (u, b) => api('DELETE', u, b);
 
+    const DEFAULT_MODELS = [
+    { id: "claude-sonnet-5", name: "Claude Sonnet 5", badge: "Cepat & Cerdas", icon: "layers", vision: true, desc: "Kualitas tinggi dengan kecepatan responsif." },
+    { id: "claude-opus-5", name: "Claude Opus 5", badge: "Direkomendasikan", icon: "spark", vision: true, desc: "Penalaran mendalam untuk analisis dan coding kompleks." },
+    { id: "deepseek-v4-flash-0731", name: "DeepSeek V4 Flash", badge: "Cepat", icon: "bolt", vision: false, desc: "Sangat cepat dan hemat untuk percakapan sehari-hari." }
+  ];
+
   const state = {
-    user: null, models: [], limits: { maxFileMB: 5, dailyMessages: 50 },
+    user: null, models: [...DEFAULT_MODELS], limits: { maxFileMB: 5, dailyMessages: 50 },
     page: 'landing', pendingNav: null,
-    model: null, streaming: false, abortCtrl: null,
+    model: DEFAULT_MODELS[0], streaming: false, abortCtrl: null,
     files: [], // {id, name, type, size, kind} — sudah terunggah ke server
     conv: null, // {id, title, messages:[...]} percakapan yang sedang dibuka
     convList: [], // ringkasan untuk sidebar & halaman riwayat
@@ -858,6 +864,7 @@
      MODEL & TOPBAR
      ═══════════════════════════════════════════════════════════════ */
   function populateModelControls() {
+    if (state.page === "chat") renderTopbar("chat");
     const sel = $('#selDefaultModel');
     if (sel) sel.innerHTML = state.models.map((m) => `<option value="${m.id}">${esc(m.name)}</option>`).join('');
     applyLimitsToPricing();
@@ -885,8 +892,8 @@
      BOOT — sesi & daftar model dimuat sebelum aplikasi siap dipakai
      ═══════════════════════════════════════════════════════════════ */
   async function boot() {
-    let session = { user: null }, modelsRes = { models: [], default: null, limits: state.limits };
-    try { const [session, modelsRes, healthRes] = await Promise.all([apiGet('/api/auth/session').catch(() => ({ user: null })), apiGet('/api/models').catch(() => ({ models: [], default: null, limits: state.limits })), apiGet('/api/health').catch(() => ({ ok: true, maintenance: { enabled: false, message: '' } }))]);
+    let session = { user: null }, modelsRes = { models: [...DEFAULT_MODELS], default: null, limits: state.limits };
+    try { const [session, modelsRes, healthRes] = await Promise.all([apiGet('/api/auth/session').catch(() => ({ user: null })), apiGet('/api/models').catch(() => ({ models: [...DEFAULT_MODELS], default: null, limits: state.limits })), apiGet('/api/health').catch(() => ({ ok: true, maintenance: { enabled: false, message: '' } }))]);
     if (healthRes && healthRes.maintenance) state.maintenance = healthRes.maintenance;
     applyMaintenanceUI(); }
     catch { toast('Tidak bisa menghubungi server. Beberapa fitur mungkin tidak berfungsi.'); }
