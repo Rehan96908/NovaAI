@@ -4,7 +4,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const cfg = require('./lib/config');
-const { db, save, flush, uid } = require('./lib/db');
+const dbMod = require('./lib/db');
+const { db, save, flush, uid } = dbMod;
 const auth = require('./lib/auth');
 const H = require('./lib/http');
 const models = require('./lib/models');
@@ -90,9 +91,9 @@ function route(method, pattern, handler, opts = {}) {
   const re = new RegExp('^' + pattern.replace(/:([a-z]+)/gi, (_, k) => { keys.push(k); return '([^/]+)'; }) + '/?$');
   routes.push({ method, re, keys, handler, auth: opts.auth !== false });
 }
-async function handleApi(req, res, url, customSubPath) {
+async function handleApi(req, res, url, customApiPath) {
   await ensureAdminUser();
-  const p = customSubPath || (url.pathname.replace(/^\/api/, "") || "/");
+  // customApiPath processed below
   const ip = H.clientIp(req);
   if (!limit(`ip:${ip}`, 600, 60000)) throw new HttpError(429, 'Terlalu banyak permintaan. Coba lagi sebentar.');
   if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && req.headers.origin) { // perlindungan CSRF
@@ -100,7 +101,7 @@ async function handleApi(req, res, url, customSubPath) {
     try { ok = new URL(req.headers.origin).host === ((cfg.TRUST_PROXY && req.headers['x-forwarded-host']) || req.headers.host); } catch { /* origin rusak */ }
     if (!ok) throw new HttpError(403, 'Asal permintaan tidak diizinkan.');
   }
-  const pathname = url.pathname.replace(/\/+$/, '') || '/';
+  const pathname = (customApiPath || url.pathname).replace(/\/+$/, '') || '/';
   for (const r of routes) {
     if (r.method !== req.method) continue;
     const m = r.re.exec(pathname); if (!m) continue;
@@ -399,25 +400,41 @@ route('POST', '/api/chat', async ({ req, res, user }) => {
    (hosting Node biasa) maupun oleh fungsi serverless Vercel (lihat api/index.js). */
 
 function getApiPathname(req, url) {
-  if (req.headers["x-matched-path"] && req.headers["x-matched-path"].startsWith("/api/")) {
-    return req.headers["x-matched-path"];
+  const querySub = url.searchParams.get('_api_path') || url.searchParams.get('0');
+  if (querySub) return '/api/' + querySub.replace(/^\/+/, '');
+
+  const routeMatches = req.headers['x-now-route-matches'];
+  if (routeMatches) {
+    const m = routeMatches.match(/(?:1|_api_path|0)=([^&]+)/);
+    if (m && m[1]) return '/api/' + decodeURIComponent(m[1]).replace(/^\/+/, '');
   }
-  if (url.pathname === "/api/index" || url.pathname === "/api/index.js" || url.pathname === "/api") {
-    if (url.searchParams.has("0")) {
-      return "/api/" + url.searchParams.get("0").replace(/^\/+/, "");
-    }
+
+  for (const h of ['x-invoke-path', 'x-forwarded-uri', 'x-original-url']) {
+    const v = req.headers[h];
+    if (v && v.startsWith('/api/') && !v.startsWith('/api/index')) return v.split('?')[0];
   }
+
+  const matched = req.headers['x-matched-path'];
+  if (matched && matched.startsWith('/api/') && !matched.startsWith('/api/index')) return matched.split('?')[0];
+
+  if (url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/index')) return url.pathname;
+
+  const rawPath = (req.url || '').split('?')[0];
+  if (rawPath.startsWith('/api/') && !rawPath.startsWith('/api/index')) return rawPath;
+
   return url.pathname;
 }
 
 async function requestHandler(req, res) {
   H.secureHeaders(res);
   try {
+    if (typeof dbMod.loadDb === 'function') {
+      try { await dbMod.loadDb(); } catch (e) { console.error('[server] loadDb error:', e.message); }
+    }
     let url; try { url = new URL(req.url, "http://localhost"); } catch { throw new HttpError(400, "URL tidak valid."); }
     const apiPath = getApiPathname(req, url);
-    if (apiPath.startsWith("/api/") && apiPath !== "/api/index" && apiPath !== "/api/index.js") {
-      const sub = apiPath.replace(/^\/api/, "") || "/";
-      return await handleApi(req, res, url, sub);
+    if (apiPath.startsWith("/api/") && !apiPath.startsWith("/api/index")) {
+      return await handleApi(req, res, url, apiPath);
     }
     if (req.method !== "GET" && req.method !== "HEAD") throw new HttpError(405, "Metode tidak diizinkan.");
     if (H.serveStatic(req, res, url.pathname)) return;
@@ -426,11 +443,16 @@ async function requestHandler(req, res) {
   } catch (e) {
     const status = e instanceof HttpError ? e.status : 500;
     if (status === 500) console.error("[server]", e);
-    if (res.headersSent) { try { res.end(); } catch { /* selesai */ } return; }
+    if (res.headersSent) { try { res.end(); } catch {} return; }
     if (status === 413) res.setHeader("Connection", "close");
     H.json(res, status, { error: status === 500 ? "Terjadi kesalahan di server." : e.message });
+  } finally {
+    if (typeof dbMod.flushIfDirty === 'function') {
+      try { await dbMod.flushIfDirty(); } catch (e) { console.error('[server] flushIfDirty error:', e.message); }
+    }
   }
 }
+
 const server = http.createServer(requestHandler);
 
 function start(port = cfg.PORT, host = cfg.HOST) { return new Promise((resolve) => server.listen(port, host, () => resolve(server))); }
